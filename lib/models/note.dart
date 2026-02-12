@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 
 part 'note.g.dart';
@@ -61,14 +62,27 @@ class Note {
   }) {
     final data = map ?? const <String, dynamic>{};
 
+    DateTime dateTimeFromData(dynamic value) {
+      if (value is DateTime) {
+        return value;
+      }
+      if (value is Timestamp) {
+        return value.toDate();
+      }
+      if (value is String) {
+        return DateTime.tryParse(value) ?? DateTime.now();
+      }
+      return DateTime.now();
+    }
+
     return Note(
       id: id,
       title: data['title'] as String?,
       content: data['content'] as String?,
       contentJson: data['contentJson'] as String? ?? '',
       tags: (data['tags'] as List?)?.cast<String>(),
-      dateCreated: data['dateCreated'],
-      dateModified: data['dateModified'],
+      dateCreated: dateTimeFromData(data['dateCreated']),
+      dateModified: dateTimeFromData(data['dateModified']),
       isDeleted: data['isDeleted'] as bool? ?? false,
       needsSync: false,
     );

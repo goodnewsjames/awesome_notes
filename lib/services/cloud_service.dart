@@ -11,14 +11,10 @@ class CloudService {
   User? get currentUser => _auth.currentUser;
   bool get isLoggedIn => currentUser != null;
 
-  CollectionReference<Map<String, dynamic>>
+  CollectionReference<Map<String, dynamic>>?
   get _notesCollection {
     final uid = currentUser?.uid;
-    if (uid == null) {
-      throw Exception(
-        'User is not authenticated - cannot access notes collection',
-      );
-    }
+    if (uid == null) return null;
     return _firestore
         .collection("users")
         .doc(uid)
@@ -27,10 +23,11 @@ class CloudService {
 
   Stream<QuerySnapshot<Map<String, dynamic>>>
   get notesSnapshots {
-    if (!isLoggedIn) {
+    final collection = _notesCollection;
+    if (collection == null) {
       return Stream.empty();
     }
-    return _notesCollection.snapshots();
+    return collection.snapshots();
   }
 
   Future<void> uploadNote(Note note) async {
@@ -40,7 +37,10 @@ class CloudService {
     }
 
     try {
-      final docRef = _notesCollection.doc(note.id);
+      final collection = _notesCollection;
+      if (collection == null) return;
+
+      final docRef = collection.doc(note.id);
       await docRef.set(note.toMap());
       debugPrint(
         "Uploaded note ${note.id} (isDeleted: ${note.isDeleted})",
@@ -58,7 +58,10 @@ class CloudService {
     }
 
     try {
-      await _notesCollection.doc(noteId).delete();
+      final collection = _notesCollection;
+      if (collection == null) return;
+
+      await collection.doc(noteId).delete();
       debugPrint("Hard deleted note $noteId from cloud");
     } catch (e) {
       debugPrint("Failed to hard delete note $noteId: $e");

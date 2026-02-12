@@ -7,8 +7,6 @@ class HiveService {
   Box get box => _box;
 
   Future<void> initialize() async {
-    // await Hive.deleteBoxFromDisk('notebox'); // REMOVED: Causing data loss on restart
-
     _box = await Hive.openBox("notebox");
   }
 
@@ -19,7 +17,7 @@ class HiveService {
       return;
     }
     final updatedIndex = [...index, noteId];
-    await _box.put("notes_index", updatedIndex);
+    await _box.put(_indexKey, updatedIndex);
   }
 
   Future<void> _removeFromIndex(String noteId) async {

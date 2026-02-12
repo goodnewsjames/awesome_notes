@@ -56,20 +56,27 @@ class NotesProvider extends ChangeNotifier {
   void updateNote(Note note) {
     final now = DateTime.now();
     final index = _notes.indexWhere(
-      (element) => element.dateCreated == note.dateCreated,
+      (element) => element.id == note.id,
     );
     final updatedNote = note.copyWith(
       dateModified: now,
       needsSync: true,
     );
-    _hiveService.saveNote(updatedNote);
-    _notes[index] = updatedNote;
-    notifyListeners();
+    if (index != -1) {
+      _notes[index] = updatedNote;
+      _hiveService.saveNote(updatedNote);
+      notifyListeners();
+    }
   }
 
   void deleteNote(Note note) {
-    _notes.remove(note);
-    _hiveService.deleteNote(note.id);
+    final updatedNote = note.copyWith(
+      isDeleted: true,
+      needsSync: true,
+      dateModified: DateTime.now(),
+    );
+    _notes.removeWhere((n) => n.id == note.id);
+    _hiveService.saveNote(updatedNote);
     notifyListeners();
   }
 

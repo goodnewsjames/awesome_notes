@@ -121,17 +121,19 @@ class NewNoteController extends ChangeNotifier {
       content.toDelta().toJson(),
     );
     final DateTime now = DateTime.now();
-    final String newId = IdGenerator.generate();
+    // Reuse existing ID if not a new note, otherwise generate a new one
+    final String activeId = isNewNote
+        ? IdGenerator.generate()
+        : _note!.id;
 
     final Note note = Note(
-      id: newId,
+      id: activeId,
       title: newTitle,
       content: newContent,
       contentJson: contentJson,
       dateCreated: isNewNote ? now : _note!.dateCreated,
       dateModified: now,
       tags: tags,
-      
     );
 
     final notesProvider = context.read<NotesProvider>();

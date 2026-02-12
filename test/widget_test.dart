@@ -38,7 +38,12 @@ void main() {
 
     // Build our app and trigger a frame.
     await tester.pumpWidget(
-      AwesomeNoteApp(hiveService: fakeHiveService),
+      AwesomeNoteApp(
+        hiveService: fakeHiveService,
+        home: const Scaffold(
+          body: Center(child: Text('Test Home')),
+        ),
+      ),
     );
 
     // Trigger a frame to allow providers to initialize

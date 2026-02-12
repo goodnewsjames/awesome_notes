@@ -1,12 +1,19 @@
-import 'package:awesome_notes/change_notifiers/registration_controller.dart';
+import 'package:awesome_notes/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   AuthService._();
 
   static final _auth = FirebaseAuth.instance;
+
+  static Future<void> initialize() async {
+    if (kIsWeb) {
+      await _auth.setPersistence(Persistence.LOCAL);
+    }
+  }
 
   static User? get user => _auth.currentUser;
   static bool get isAuthenticated => user != null;
@@ -55,31 +62,44 @@ class AuthService {
   }
 
   static Future<UserCredential> signInWithGoogle() async {
-    // Initialize GoogleSignIn (assumes initialized elsewhere with scopes)
+    // Web: Use signInWithPopup directly from FirebaseAuth (handles GIS popup/webview)
+    if (kIsWeb) {
+      try {
+        return await FirebaseAuth.instance.signInWithPopup(
+          GoogleAuthProvider(),
+        );
+      } catch (e) {
+        throw Exception('Google Sign-In failed on Web: $e');
+      }
+    }
+
+    // Mobile: Use GoogleSignIn plugin with authenticate()
     final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+    await googleSignIn.initialize(
+      serverClientId: DefaultFirebaseOptions
+          .currentPlatform
+          .androidClientId
+    );
 
     try {
-      googleSignIn.initialize(
-        serverClientId:
-            "604946397765-v1sfjcm9f2jfhlnk4f3cnuto4vusm778.apps.googleusercontent.com",
-      );
-      // Trigger the authentication flow
-      final GoogleSignInAccount googleUser =
+      final GoogleSignInAccount? googleUser =
           await googleSignIn.authenticate();
 
-      // Obtain the auth details
+      if (googleUser == null) {
+        throw NoGoogleAccountChosenException();
+      }
+
       final GoogleSignInAuthentication googleAuth =
           googleUser.authentication;
 
-      // Create a new credential
       final credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
       );
 
-      // Sign in with Firebase
       return await FirebaseAuth.instance
           .signInWithCredential(credential);
     } on GoogleSignInException catch (e) {
+      // Handling cancellation properly
       if (e.code == GoogleSignInExceptionCode.canceled) {
         throw NoGoogleAccountChosenException();
       }
@@ -93,38 +113,97 @@ class AuthService {
     }
   }
 
+  static Future<void> reloadUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await user.reload();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' ||
+          e.code == 'user-disabled') {
+        // User might have been deleted/disabled by admin
+        // Force logout to clean up state
+        await logout();
+        throw FirebaseAuthException(
+          code: e.code,
+          message:
+              'Your account has been invalid. Please login again.',
+        );
+      }
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to reload user: $e');
+    }
+  }
+
   static Future<UserCredential> signInWithFacebook() async {
-    // Trigger the sign-in flow
-    final LoginResult loginResult = await FacebookAuth
-        .instance
-        .login();
+    try {
+      // Trigger the sign-in flow
+      final LoginResult loginResult = await FacebookAuth
+          .instance
+          .login();
 
-    // Check login result
-    if (loginResult.accessToken != null) {
-      final OAuthCredential facebookAuthCredential =
-          FacebookAuthProvider.credential(
-            loginResult.accessToken!.tokenString,
-          );
+      // Check login result
+      if (loginResult.accessToken != null) {
+        final OAuthCredential facebookAuthCredential =
+            FacebookAuthProvider.credential(
+              loginResult.accessToken!.tokenString,
+            );
 
-      return await FirebaseAuth.instance
-          .signInWithCredential(facebookAuthCredential);
-    } else {
-      // Throw an error or handle gracefully
-      throw FirebaseAuthException(
-        code: 'ERROR_FACEBOOK_LOGIN_FAILED',
-        message:
-            loginResult.message ??
-            'Facebook login failed or was cancelled',
-      );
+        return await FirebaseAuth.instance
+            .signInWithCredential(facebookAuthCredential);
+      } else {
+        throw FirebaseAuthException(
+          code: 'ERROR_FACEBOOK_LOGIN_FAILED',
+          message:
+              loginResult.message ??
+              'Facebook login failed or was cancelled',
+        );
+      }
+    } on FirebaseAuthException {
+      rethrow; // Pass Firebase errors to UI
+    } catch (_) {
+      throw Exception('Facebook Sign-In failed');
     }
   }
 
   static Future<void> resetPassword({
     required String email,
-  }) => _auth.sendPasswordResetEmail(email: email);
+  }) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw FirebaseAuthException(
+        code: e.code,
+        message: e.message ?? 'Password reset failed',
+      );
+    } catch (e) {
+      throw Exception('Password reset failed: $e');
+    }
+  }
 
   static Future<void> logout() async {
-    await _auth.signOut();
-    await GoogleSignIn.instance.signOut();
+    try {
+      if (kIsWeb) {
+        // On web, just sign out of Firebase.
+        // GoogleSignIn.disconnect() or signOut() on web might be tricky depending on strictness
+        // but FirebaseAuth signOut is the primary action.
+        await _auth.signOut();
+      } else {
+        // Mobile
+        await GoogleSignIn.instance.signOut();
+        await _auth.signOut();
+      }
+    } catch (e) {
+      // Even if one fails, try to force local sign out state if possible
+      // But rethrow so UI knows something went wrong (optional)
+      throw Exception('Logout failed: $e');
+    }
   }
+}
+
+class NoGoogleAccountChosenException implements Exception {
+  @override
+  String toString() => 'No Google account chosen';
 }

@@ -1,5 +1,6 @@
 import 'package:awesome_notes/change_notifiers/new_note_controller.dart';
 import 'package:awesome_notes/change_notifiers/notes_provider.dart';
+import 'package:awesome_notes/change_notifiers/trash_controller.dart';
 import 'package:awesome_notes/core/dialogs.dart';
 import 'package:awesome_notes/models/note.dart';
 import 'package:awesome_notes/pages/new_or_edit_note_page.dart';
@@ -41,9 +42,22 @@ class _MainPageState extends State<MainPage> {
                           "Do you want to sign out of the app?",
                     ) ??
                     false;
-                    if(shouldLogout) {
-                      AuthService.logout();
-                    }
+                if (shouldLogout && context.mounted) {
+                  final notesProvider =
+                      Provider.of<NotesProvider>(
+                        context,
+                        listen: false,
+                      );
+                  final trashController =
+                      Provider.of<TrashController>(
+                        context,
+                        listen: false,
+                      );
+
+                  await notesProvider.clearAllNotes();
+                  trashController.clearTrash();
+                  await AuthService.logout();
+                }
               },
             ),
           ),

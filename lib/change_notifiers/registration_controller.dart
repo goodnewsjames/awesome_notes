@@ -1,8 +1,11 @@
+import 'package:awesome_notes/change_notifiers/notes_provider.dart';
+import 'package:awesome_notes/change_notifiers/trash_controller.dart';
 import 'package:awesome_notes/core/constants.dart';
 import 'package:awesome_notes/core/dialogs.dart';
 import 'package:awesome_notes/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RegistrationController extends ChangeNotifier {
   bool _isRegisterMode = true;
@@ -52,11 +55,19 @@ class RegistrationController extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
+  Future<void> _clearLocalData(BuildContext context) async {
+    final notesProvider = context.read<NotesProvider>();
+    final trashController = context.read<TrashController>();
+    await notesProvider.clearAllNotes();
+    trashController.clearTrash();
+  }
+
   Future<void> authenticateWithEmailAndPassword(
     BuildContext context,
   ) async {
     isLoading = true;
     try {
+      await _clearLocalData(context);
       if (_isRegisterMode) {
         await AuthService.register(
           fullName: fullName,
@@ -64,11 +75,13 @@ class RegistrationController extends ChangeNotifier {
           password: password,
         );
         if (!context.mounted) return;
-        showMessageDialog(
+        isLoading = false;
+        await showMessageDialog(
           context: context,
           message:
               "A verification email was sent to the provided email address. Please confirm your email to proceed to the app.",
         );
+        isLoading = true;
         while (!AuthService.isEmailVerified) {
           await Future.delayed(
             Duration(seconds: 5),
@@ -80,7 +93,22 @@ class RegistrationController extends ChangeNotifier {
           email: email,
           password: password,
         );
-        
+        if (!AuthService.isEmailVerified) {
+          if (!context.mounted) return;
+          isLoading = false;
+          await showMessageDialog(
+            context: context,
+            message:
+                "Your email is not verified yet. A verification email was sent during registration. Please verify to proceed.",
+          );
+          isLoading = true;
+          while (!AuthService.isEmailVerified) {
+            await Future.delayed(
+              Duration(seconds: 5),
+              () => AuthService.user?.reload(),
+            );
+          }
+        }
       }
     } on FirebaseAuthException catch (e) {
       if (!context.mounted) return;
@@ -105,7 +133,9 @@ class RegistrationController extends ChangeNotifier {
   Future<void> authenticateWithGoogle({
     required BuildContext context,
   }) async {
+    isLoading = true;
     try {
+      await _clearLocalData(context);
       await AuthService.signInWithGoogle();
     } on NoGoogleAccountChosenException {
       return;
@@ -115,13 +145,17 @@ class RegistrationController extends ChangeNotifier {
         context: context,
         message: e.toString(),
       );
+    } finally {
+      isLoading = false;
     }
   }
 
   Future<void> authenticateWithFacebook({
     required BuildContext context,
   }) async {
+    isLoading = true;
     try {
+      await _clearLocalData(context);
       await AuthService.signInWithFacebook();
     } on FirebaseAuthException catch (e) {
       if (!context.mounted) return;
@@ -136,6 +170,8 @@ class RegistrationController extends ChangeNotifier {
         message:
             "An unknown error occured with facebook sign in",
       );
+    } finally {
+      isLoading = false;
     }
   }
 
