@@ -14,13 +14,17 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:provider/provider.dart';
 
 class AwesomeNoteApp extends StatelessWidget {
-  const AwesomeNoteApp({super.key});
+  final HiveService hiveService;
+  const AwesomeNoteApp({
+    required this.hiveService,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<HiveService>(create: (_) => HiveService()..initialize()),
+        Provider<HiveService>.value(value: hiveService),
         Provider<CloudService>(
           create: (_) => CloudService(),
         ),
@@ -29,11 +33,13 @@ class AwesomeNoteApp extends StatelessWidget {
             final cloud = context.read<CloudService>();
             final hive = context.read<HiveService>();
             return SyncService(cloud: cloud, hive: hive);
-          }, dispose: (_, sync) => sync.dispose(),
+          },
+          dispose: (_, sync) => sync.dispose(),
         ),
         ChangeNotifierProvider(
           create: (context) =>
-              NotesProvider(context.read<HiveService>())..loadAllNotes(),
+              NotesProvider(context.read<HiveService>())
+                ..loadAllNotes(),
         ),
         ChangeNotifierProvider(
           create: (context) => RegistrationController(),

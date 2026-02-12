@@ -14,8 +14,8 @@ Future<void> main() async {
 
   await Hive.initFlutter();
   Hive.registerAdapter(NoteAdapter());
-  // final HiveService hiveService = HiveService();
-  // hiveService.initialize();
+  final HiveService hiveService = HiveService();
+  await hiveService.initialize();
 
-  runApp(AwesomeNoteApp());
+  runApp(AwesomeNoteApp(hiveService: hiveService));
 }
