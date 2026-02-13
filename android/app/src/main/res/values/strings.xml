@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Note Awesome</string>
-    <string name="facebook_app_id">1796353587663797</string>
-    <string name="fb_login_protocol_scheme">fb1796353587663797</string>
-    <string name="facebook_client_token">36aebcaad1930cd9ad0193df79b184bc</string>
-</resources>
