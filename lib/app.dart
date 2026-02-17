@@ -1,16 +1,11 @@
-import 'package:awesome_notes/change_notifiers/notes_provider.dart';
-import 'package:awesome_notes/change_notifiers/registration_controller.dart';
 import 'package:awesome_notes/core/constants.dart';
 import 'package:awesome_notes/pages/main_page.dart';
 import 'package:awesome_notes/pages/registration_page.dart';
-import 'package:awesome_notes/services/auth_service.dart';
-import 'package:awesome_notes/services/cloud_service.dart';
-import 'package:awesome_notes/services/hive_service.dart';
-import 'package:awesome_notes/services/sync_service.dart';
+import 'package:awesome_notes/services/services.dart';
+import 'package:awesome_notes/change_notifiers/change_notifiers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:awesome_notes/change_notifiers/trash_controller.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:provider/provider.dart';
 
@@ -76,6 +71,10 @@ class AwesomeNoteApp extends StatelessWidget {
           textTheme: GoogleFonts.poppinsTextTheme(),
           colorScheme: ColorScheme.fromSeed(
             seedColor: primary,
+          ),
+          textSelectionTheme: const TextSelectionThemeData(
+            cursorColor: primary,
+            selectionHandleColor: primary,
           ),
           scaffoldBackgroundColor: background,
           appBarTheme: Theme.of(context).appBarTheme

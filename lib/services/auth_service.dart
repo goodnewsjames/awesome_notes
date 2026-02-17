@@ -1,6 +1,5 @@
 import 'package:awesome_notes/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -65,7 +64,7 @@ class AuthService {
     // Web: Use signInWithPopup directly from FirebaseAuth (handles GIS popup/webview)
     if (kIsWeb) {
       try {
-        return await FirebaseAuth.instance.signInWithPopup(
+        return await _auth.signInWithPopup(
           GoogleAuthProvider(),
         );
       } catch (e) {
@@ -134,37 +133,6 @@ class AuthService {
       rethrow;
     } catch (e) {
       throw Exception('Failed to reload user: $e');
-    }
-  }
-
-  static Future<UserCredential> signInWithFacebook() async {
-    try {
-      // Trigger the sign-in flow
-      final LoginResult loginResult = await FacebookAuth
-          .instance
-          .login();
-
-      // Check login result
-      if (loginResult.accessToken != null) {
-        final OAuthCredential facebookAuthCredential =
-            FacebookAuthProvider.credential(
-              loginResult.accessToken!.tokenString,
-            );
-
-        return await FirebaseAuth.instance
-            .signInWithCredential(facebookAuthCredential);
-      } else {
-        throw FirebaseAuthException(
-          code: 'ERROR_FACEBOOK_LOGIN_FAILED',
-          message:
-              loginResult.message ??
-              'Facebook login failed or was cancelled',
-        );
-      }
-    } on FirebaseAuthException {
-      rethrow; // Pass Firebase errors to UI
-    } catch (_) {
-      throw Exception('Facebook Sign-In failed');
     }
   }
 

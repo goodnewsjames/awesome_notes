@@ -8,11 +8,10 @@ class NoteGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      clipBehavior: Clip.none,
       itemCount: notes.length,
       gridDelegate:
-          SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+          SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
           ),

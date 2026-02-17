@@ -28,8 +28,8 @@ class _NewOrEditNotePageState
   late final NewNoteController newNoteController;
   late final TextEditingController titleController;
   late final QuillController quillController;
-  late FocusNode contentFocusNode;
-  late FocusNode titleFocusNode;
+  late final FocusNode titleFocusNode;
+  late final FocusNode contentFocusNode;
 
   @override
   void initState() {
@@ -41,27 +41,29 @@ class _NewOrEditNotePageState
             quillController.document;
       });
 
-    contentFocusNode = FocusNode();
     titleFocusNode = FocusNode();
-
+    contentFocusNode = FocusNode();
     titleController = TextEditingController(
       text: newNoteController.title,
     );
-    newNoteController.addListener(() {
-      quillController.readOnly = newNoteController.readOnly;
-    });
     WidgetsBinding.instance.addPostFrameCallback((
       timeStamp,
     ) {
+      newNoteController.readOnly = false;
+
       if (widget.isNewNote) {
-        // focusNode.requestFocus();
-        newNoteController.readOnly = false;
+        titleFocusNode.requestFocus();
       } else {
-        newNoteController.readOnly = true;
         quillController.document =
             newNoteController.content;
+
+        final length = quillController.document.length;
+        quillController.updateSelection(
+          TextSelection.collapsed(offset: length - 1),
+          ChangeSource.local,
+        );
+        contentFocusNode.requestFocus();
       }
-      // newNoteController.readOnly = !widget.isNewNote;
     });
   }
 
@@ -69,9 +71,8 @@ class _NewOrEditNotePageState
   void dispose() {
     quillController.dispose();
     titleController.dispose();
-    contentFocusNode.dispose();
     titleFocusNode.dispose();
-
+    contentFocusNode.dispose();
     super.dispose();
   }
 
@@ -113,14 +114,7 @@ class _NewOrEditNotePageState
                     icon: newNoteController.readOnly
                         ? FontAwesomeIcons.pen
                         : FontAwesomeIcons.bookOpen,
-                    onPressed: () {
-                      newNoteController.toggleReadOnly();
-                      if (newNoteController.readOnly) {
-                        FocusScope.of(context).unfocus();
-                      } else {
-                        contentFocusNode.requestFocus();
-                      }
-                    },
+                    onPressed: () {},
                   ),
             ),
             Padding(
@@ -144,77 +138,66 @@ class _NewOrEditNotePageState
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Selector<NewNoteController, bool>(
-                selector: (context, controller) =>
-                    controller.readOnly,
-                builder: (context, read, child) {
-                  return TextFormField(
-
-                    controller: titleController,
-                    textCapitalization: TextCapitalization.sentences,
-                    textInputAction: TextInputAction.next,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    onChanged: (newValue) {
-                      newNoteController.title = newValue;
-                    },
-                    onFieldSubmitted: (value) {
-                      contentFocusNode.requestFocus();
-                    },
-                    canRequestFocus: !read,
-                    focusNode: titleFocusNode,
-                    decoration: InputDecoration(
-                      hintText: "Title here",
-                      border: InputBorder.none,
-                      hintStyle: TextStyle(color: grey300),
-                    ),
-                  );
-                },
-              ),
-              NoteMetadata(note: newNoteController.note),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                ),
-                child: Divider(
-                  color: grey500,
-                  thickness: 2,
-                  height: 32,
-                ),
-              ),
-              Expanded(
-                child: Selector<NewNoteController, bool>(
-                  selector: (_, controller) =>
-                      controller.readOnly,
-                  builder: (_, readOnly, _) => Column(
-                    children: [
-                      Expanded(
-                        child: QuillEditor.basic(
-                          controller: quillController,
-                          focusNode: contentFocusNode,
-
-                          config: QuillEditorConfig(
-                            placeholder: "Note here...",
-                            expands: true,
-                          ),
+        body: Selector<NewNoteController, bool>(
+          selector: (context, controller) =>
+              controller.readOnly,
+          builder: (context, readOnly, child) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    TextFormField(
+                      focusNode: titleFocusNode,
+                      controller: titleController,
+                      textCapitalization:
+                          TextCapitalization.words,
+                      textInputAction: TextInputAction.next,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      onChanged: (newValue) {
+                        newNoteController.title = newValue;
+                      },
+                      decoration: InputDecoration(
+                        hintText: "Title here",
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                          color: grey300,
                         ),
                       ),
-                      if (!readOnly)
-                        NoteToolbar(
-                          controller: quillController,
-                        ),
-                    ],
-                  ),
+                    ),
+
+                    NoteMetadata(
+                      note: newNoteController.note,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                      ),
+                      child: Divider(
+                        color: grey500,
+                        thickness: 2,
+                        height: 32,
+                      ),
+                    ),
+                    QuillEditor.basic(
+                      focusNode: contentFocusNode,
+                      controller: quillController,
+                      config: QuillEditorConfig(
+                        placeholder: "Note here...",
+                        expands: false,
+                        showCursor: true,
+                        enableSelectionToolbar: true,
+                      ),
+                    ),
+
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

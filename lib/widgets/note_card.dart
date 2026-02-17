@@ -52,7 +52,8 @@ class NoteCard extends StatelessWidget {
             if (note.title != null) ...[
               Text(
                 note.title!,
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.visible,
+                maxLines: 2,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -80,14 +81,15 @@ class NoteCard extends StatelessWidget {
                   ? Expanded(
                       child: Text(
                         note.content!,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 6,
+                        overflow: TextOverflow.visible,
                         style: TextStyle(color: grey700),
                       ),
                     )
                   : Text(
                       note.content!,
                       maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.visible,
                       style: TextStyle(color: grey700),
                     ),
             if (isInGrid) Spacer(),

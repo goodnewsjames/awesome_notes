@@ -1,11 +1,7 @@
 import 'package:awesome_notes/change_notifiers/registration_controller.dart';
-import 'package:awesome_notes/core/constants.dart';
-import 'package:awesome_notes/core/utils/validator.dart';
+import 'package:awesome_notes/core/core.dart';
 import 'package:awesome_notes/pages/recover_password_page.dart';
-import 'package:awesome_notes/widgets/note_button.dart';
-import 'package:awesome_notes/widgets/note_form_field.dart';
-import 'package:awesome_notes/widgets/note_icon_button.dart';
-import 'package:awesome_notes/widgets/note_icon_button_outlined.dart';
+import 'package:awesome_notes/widgets/widgets.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -186,8 +182,10 @@ class _RegistrationPageState
                                         !isPasswordHidden;
                                   },
                                 ),
-                                validator: Validator
-                                    .passwordValidator,
+                                validator: isRegisterMode
+                                    ? Validator
+                                          .passwordValidator
+                                    : null,
                                 onChanged: (newValue) {
                                   registrationController
                                           .password =
@@ -277,14 +275,9 @@ class _RegistrationPageState
 
                             Expanded(
                               child: NoteIconButtonOutlined(
-                                icon: FontAwesomeIcons
-                                    .facebook,
-                                onPressed: () {
-                                  registrationController
-                                      .authenticateWithFacebook(
-                                        context: context,
-                                      );
-                                },
+                                icon:
+                                    FontAwesomeIcons.person,
+                                onPressed: () {},
                               ),
                             ),
                           ],

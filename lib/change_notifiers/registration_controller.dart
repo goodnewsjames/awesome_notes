@@ -150,31 +150,6 @@ class RegistrationController extends ChangeNotifier {
     }
   }
 
-  Future<void> authenticateWithFacebook({
-    required BuildContext context,
-  }) async {
-    isLoading = true;
-    try {
-      await _clearLocalData(context);
-      await AuthService.signInWithFacebook();
-    } on FirebaseAuthException catch (e) {
-      if (!context.mounted) return;
-      showMessageDialog(
-        context: context,
-        message: e.message ?? "Unkown error occured",
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      showMessageDialog(
-        context: context,
-        message:
-            "An unknown error occured with facebook sign in",
-      );
-    } finally {
-      isLoading = false;
-    }
-  }
-
   Future<void> resetPassword({
     required BuildContext context,
     required String email,

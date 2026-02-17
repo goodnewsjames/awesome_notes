@@ -1,8 +1,7 @@
 import 'package:awesome_notes/app.dart';
 import 'package:awesome_notes/firebase_options.dart';
 import 'package:awesome_notes/models/note.dart';
-import 'package:awesome_notes/services/auth_service.dart';
-import 'package:awesome_notes/services/hive_service.dart';
+import 'package:awesome_notes/services/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
