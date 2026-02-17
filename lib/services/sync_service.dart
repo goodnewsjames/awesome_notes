@@ -154,9 +154,8 @@ class SyncService {
             "SyncService: Error processing remote change for ${doc.id}: $e",
           );
         }
-
-        _notifyListeners();
       }
+      _notifyListeners(); // Moved outside the loop
     });
   }
 

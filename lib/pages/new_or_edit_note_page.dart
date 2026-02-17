@@ -1,10 +1,6 @@
 import 'package:awesome_notes/change_notifiers/new_note_controller.dart';
-import 'package:awesome_notes/core/constants.dart';
-import 'package:awesome_notes/core/dialogs.dart';
-import 'package:awesome_notes/widgets/note_back_button.dart';
-import 'package:awesome_notes/widgets/note_icon_button_outlined.dart';
-import 'package:awesome_notes/widgets/note_metadata.dart';
-import 'package:awesome_notes/widgets/note_toolbar.dart';
+import 'package:awesome_notes/core/core.dart';
+import 'package:awesome_notes/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -24,16 +20,20 @@ class NewOrEditNotePage extends StatefulWidget {
 }
 
 class _NewOrEditNotePageState
-    extends State<NewOrEditNotePage> {
+    extends State<NewOrEditNotePage>
+    with WidgetsBindingObserver {
   late final NewNoteController newNoteController;
   late final TextEditingController titleController;
   late final QuillController quillController;
   late final FocusNode titleFocusNode;
   late final FocusNode contentFocusNode;
+  late final ScrollController scrollController;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    scrollController = ScrollController();
     newNoteController = context.read<NewNoteController>();
     quillController = QuillController.basic()
       ..addListener(() {
@@ -49,9 +49,9 @@ class _NewOrEditNotePageState
     WidgetsBinding.instance.addPostFrameCallback((
       timeStamp,
     ) {
-      newNoteController.readOnly = false;
-
+        newNoteController.readOnly = true;
       if (widget.isNewNote) {
+        newNoteController.readOnly = false;
         titleFocusNode.requestFocus();
       } else {
         quillController.document =
@@ -68,7 +68,18 @@ class _NewOrEditNotePageState
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      _saveNote();
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    scrollController.dispose();
     quillController.dispose();
     titleController.dispose();
     titleFocusNode.dispose();
@@ -76,30 +87,21 @@ class _NewOrEditNotePageState
     super.dispose();
   }
 
+  void _saveNote() {
+    if (newNoteController.canSaveNote) {
+      newNoteController.saveNote(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
-        if (!newNoteController.canSaveNote) {
-          Navigator.pop(context);
-          return;
-        }
-
-        final bool? shouldSave =
-            await showConfirmationDialog(
-              context: context,
-              dialog: "Do you want to save the note?",
-            );
-        if (shouldSave == null) return;
-        if (!context.mounted) return;
-        if (shouldSave) {
-          newNoteController.saveNote(context);
-        }
-        Navigator.pop(context);
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        _saveNote();
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(
             widget.isNewNote ? "New Note" : "Edit Note",
@@ -139,63 +141,86 @@ class _NewOrEditNotePageState
           ],
         ),
         body: Selector<NewNoteController, bool>(
-          selector: (context, controller) =>
-              controller.readOnly,
+          selector: (context, newNoteController) =>
+              newNoteController.readOnly,
           builder: (context, readOnly, child) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    TextFormField(
-                      focusNode: titleFocusNode,
-                      controller: titleController,
-                      textCapitalization:
-                          TextCapitalization.words,
-                      textInputAction: TextInputAction.next,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      onChanged: (newValue) {
-                        newNoteController.title = newValue;
-                      },
-                      decoration: InputDecoration(
-                        hintText: "Title here",
-                        border: InputBorder.none,
-                        hintStyle: TextStyle(
-                          color: grey300,
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                    ),
+                    child: CustomScrollView(
+                      controller: scrollController,
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                focusNode: titleFocusNode,
+                                controller: titleController,
+                                textCapitalization: TextCapitalization.words,
+                                textInputAction: TextInputAction.next,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                onChanged: (newValue) {
+                                  newNoteController.title = newValue;
+                                },
+                                decoration: InputDecoration(
+                                  hintText: "Title here",
+                                  border: InputBorder.none,
+                                  hintStyle: TextStyle(color: grey300),
+                                ),
+                              ),
+                              NoteMetadata(note: newNoteController.note),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Divider(
+                                  color: grey500,
+                                  thickness: 2,
+                                  height: 32,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: QuillEditor.basic(
+                            focusNode: contentFocusNode,
+                            controller: quillController,
+                            config: QuillEditorConfig(
+                              placeholder: "Note here...",
+                              expands: true,
+                              showCursor: true,
+                              scrollable: true,
+                              enableSelectionToolbar: true,
+                            ),
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 80),
+                        ),
+                      ],
                     ),
-
-                    NoteMetadata(
-                      note: newNoteController.note,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                      ),
-                      child: Divider(
-                        color: grey500,
-                        thickness: 2,
-                        height: 32,
-                      ),
-                    ),
-                    QuillEditor.basic(
-                      focusNode: contentFocusNode,
-                      controller: quillController,
-                      config: QuillEditorConfig(
-                        placeholder: "Note here...",
-                        expands: false,
-                        showCursor: true,
-                        enableSelectionToolbar: true,
-                      ),
-                    ),
-
-                  ],
+                  ),
                 ),
-              ),
+
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                        left: 16,
+                        right: 16,
+                      ),
+                      child: NoteToolbar(controller: quillController),
+                    ),
+                  ),
+              ],
             );
           },
         ),

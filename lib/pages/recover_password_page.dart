@@ -1,9 +1,6 @@
 import 'package:awesome_notes/change_notifiers/registration_controller.dart';
-import 'package:awesome_notes/core/constants.dart';
-import 'package:awesome_notes/core/utils/validator.dart';
-import 'package:awesome_notes/widgets/note_back_button.dart';
-import 'package:awesome_notes/widgets/note_button.dart';
-import 'package:awesome_notes/widgets/note_form_field.dart';
+import 'package:awesome_notes/core/core.dart';
+import 'package:awesome_notes/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

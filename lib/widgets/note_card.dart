@@ -81,7 +81,7 @@ class NoteCard extends StatelessWidget {
                   ? Expanded(
                       child: Text(
                         note.content!,
-                        maxLines: 6,
+                        maxLines: 4,
                         overflow: TextOverflow.visible,
                         style: TextStyle(color: grey700),
                       ),
