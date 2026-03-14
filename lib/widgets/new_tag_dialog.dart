@@ -13,7 +13,7 @@ class NewTagDialog extends StatefulWidget {
 
 class _NewTagDialogState extends State<NewTagDialog> {
   late final TextEditingController tagController;
-  late final GlobalKey<FormState> tagkey;
+  late final GlobalKey<FormFieldState> tagkey;
 
   @override
   void initState() {
@@ -31,69 +31,67 @@ class _NewTagDialogState extends State<NewTagDialog> {
   @override
   Widget build(BuildContext context) {
     return DialogCard(
-      child: Form(
-        key: tagkey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              "Add tag",
-              textAlign: TextAlign.left,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "Add tag",
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 24),
+          NoteFormField(
+            fieldKey: tagkey,
+            style: TextStyle(fontWeight: FontWeight.w900),
+            textCapitalization: TextCapitalization.words,
+            controller: tagController,
+            validator: (value) {
+              if (value!.trim().isEmpty) {
+                return "No tags added";
+              } else if (value.trim().length > 24) {
+                return "Tags should not be more than 24 characters";
+              }
+              return null;
+            },
+            onEditingComplete: () {
+              if (tagkey.currentState?.validate() ??
+                  false) {
+                Navigator.pop(
+                  context,
+                  tagController.text.trim(),
+                );
+              }
+            },
+            hintText: "Add tag (< 24 characters)",
+            autofocus: true,
+            onChanged: (value) {
+              tagkey.currentState?.validate();
+            },
+          ),
+          SizedBox(height: 24),
+          NoteButton(
+            child: Text(
+              "Add",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 24),
-            NoteFormField(
-            style: TextStyle(fontWeight: FontWeight.w900),
-              textCapitalization: TextCapitalization.words,
-              controller: tagController,
-              validator: (value) {
-                if (value!.trim().isEmpty) {
-                  return "No tags added";
-                } else if (value.trim().length > 24) {
-                  return "Tags should not be more than 24 characters";
-                }
-                return null;
-              },
-              onEditingComplete: () {
-                if (tagkey.currentState?.validate() ??
-                    false) {
-                  Navigator.pop(
-                    context,
-                    tagController.text.trim(),
-                  );
-                }
-              },
-              hintText: "Add tag (< 24 characters)",
-              autofocus: true,
-              onChanged: (value) {
-                tagkey.currentState?.validate();
-              },
-            ),
-            SizedBox(height: 24),
-            NoteButton(
-              child: Text(
-                "Add",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: () {
-                if (tagkey.currentState?.validate() ??
-                    false) {
-                  Navigator.pop(
-                    context,
-                    tagController.text.trim(),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
+            onPressed: () {
+              if (tagkey.currentState?.validate() ??
+                  false) {
+                Navigator.pop(
+                  context,
+                  tagController.text.trim(),
+                );
+              }
+            },
+          ),
+        ],
       ),
     );
   }

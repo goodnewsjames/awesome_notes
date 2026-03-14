@@ -8,6 +8,7 @@ class NoteFormField extends StatelessWidget {
     this.validator,
     this.hintText,
     this.onChanged,
+    this.fieldKey,
     this.onEditingComplete,
     this.autofocus = false,
     this.filled,
@@ -34,10 +35,12 @@ class NoteFormField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final TextInputType? keyboardType;
   final TextStyle? style;
+  final Key? fieldKey;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      key: fieldKey,
       onEditingComplete: onEditingComplete,
       controller: controller,
       autofocus: autofocus,

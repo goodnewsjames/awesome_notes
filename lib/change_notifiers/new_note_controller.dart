@@ -53,7 +53,7 @@ class NewNoteController extends ChangeNotifier {
 
   Document get content => _content;
 
-  final List<String> _tags = [];
+  List<String> _tags = [];
 
   void addTags(String tag) {
     if (tag.isNotEmpty) {
@@ -137,6 +137,14 @@ class NewNoteController extends ChangeNotifier {
       dateModified: now,
       tags: tags,
     );
+
+    _note = note;
+    _title = note.title ?? '';
+    _content = Document.fromJson(
+      jsonDecode(note.contentJson),
+    );
+    _tags = [...note.tags ?? []];
+    notifyListeners();
 
     final notesProvider = context.read<NotesProvider>();
     isNewNote

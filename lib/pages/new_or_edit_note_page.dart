@@ -1,3 +1,5 @@
+import 'dart:async' show Timer;
+
 import 'package:awesome_notes/change_notifiers/new_note_controller.dart';
 import 'package:awesome_notes/core/core.dart';
 import 'package:awesome_notes/widgets/widgets.dart';
@@ -28,6 +30,7 @@ class _NewOrEditNotePageState
   late final FocusNode titleFocusNode;
   late final FocusNode contentFocusNode;
   late final ScrollController scrollController;
+  Timer? _autoSaveTimer;
 
   @override
   void initState() {
@@ -36,7 +39,7 @@ class _NewOrEditNotePageState
     scrollController = ScrollController();
     newNoteController = context.read<NewNoteController>();
     quillController = QuillController.basic();
-
+    quillController.addListener(_startAutoSaveTimer);
     titleFocusNode = FocusNode();
     contentFocusNode = FocusNode();
     titleController = TextEditingController(
@@ -80,7 +83,17 @@ class _NewOrEditNotePageState
     titleController.dispose();
     titleFocusNode.dispose();
     contentFocusNode.dispose();
+    _autoSaveTimer?.cancel();
     super.dispose();
+  }
+
+  void _startAutoSaveTimer() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(const Duration(seconds: 5), () {
+      if (newNoteController.canSaveNote) {
+        _saveNote();
+      }
+    });
   }
 
   void _saveNote() {
@@ -212,6 +225,9 @@ class _NewOrEditNotePageState
                               showCursor: true,
                               scrollable: true,
                               enableSelectionToolbar: true,
+                              enableInteractiveSelection:
+                                  true,
+
                             ),
                           ),
                         ),

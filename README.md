@@ -120,3 +120,19 @@ This project uses Firebase for authentication and sync. For security, API keys a
    - This will automatically generate your local `lib/firebase_options.dart`.
 3. **Alternative**: Rename `lib/firebase_options_example.dart` to `lib/firebase_options.dart` and manually paste your keys.
 4. **Finalize**: Run `flutter pub get` and `flutter run`.
+**TODO**
+
+Clean hive storage after logout 
+Log user in immediately after sign up 
+Whole pages scrolls
+Reduce toolbar white space 
+Increase the line spacing 
+Remove save button and add save on exit
+Add tag not working 
+Optimize typing experience 
+Change font to a more typing friendly fonts
+Reduce fonts size and adjust text align
+Adjust text editing focus to match page focus
+Ability to move cursor around page
+Show more of the contents in the main page
+Remove Facebook auth add guest mode 
