@@ -108,7 +108,10 @@ class _NewOrEditNotePageState
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
-        _saveNote();
+        _autoSaveTimer?.cancel();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _saveNote();
+        });
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -227,7 +230,6 @@ class _NewOrEditNotePageState
                               enableSelectionToolbar: true,
                               enableInteractiveSelection:
                                   true,
-
                             ),
                           ),
                         ),
