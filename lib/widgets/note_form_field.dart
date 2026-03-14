@@ -14,6 +14,7 @@ class NoteFormField extends StatelessWidget {
     this.fillColor,
     this.labelText,
     this.suffixIcon,
+    this.style,
     this.obscureText = false,
     this.textCapitalization = TextCapitalization.none, this.textInputAction, this.keyboardType,
   });
@@ -32,6 +33,7 @@ class NoteFormField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final TextInputAction? textInputAction;
   final TextInputType? keyboardType;
+  final TextStyle? style;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,7 @@ class NoteFormField extends StatelessWidget {
       controller: controller,
       autofocus: autofocus,
       obscureText: obscureText,
+      style: style,
       textCapitalization: textCapitalization,
       textInputAction: textInputAction,
       keyboardType: keyboardType,

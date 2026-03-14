@@ -13,7 +13,7 @@ class NewTagDialog extends StatefulWidget {
 
 class _NewTagDialogState extends State<NewTagDialog> {
   late final TextEditingController tagController;
-  late final GlobalKey<FormFieldState> tagkey;
+  late final GlobalKey<FormState> tagkey;
 
   @override
   void initState() {
@@ -47,12 +47,14 @@ class _NewTagDialogState extends State<NewTagDialog> {
             ),
             SizedBox(height: 24),
             NoteFormField(
+            style: TextStyle(fontWeight: FontWeight.w900),
+              textCapitalization: TextCapitalization.words,
               controller: tagController,
               validator: (value) {
                 if (value!.trim().isEmpty) {
-                  return "No tads added";
-                } else if (value.trim().length > 16) {
-                  return "Tags should not be more than 16 characters";
+                  return "No tags added";
+                } else if (value.trim().length > 24) {
+                  return "Tags should not be more than 24 characters";
                 }
                 return null;
               },
@@ -65,7 +67,7 @@ class _NewTagDialogState extends State<NewTagDialog> {
                   );
                 }
               },
-              hintText: "Add tag (< 16 characters)",
+              hintText: "Add tag (< 24 characters)",
               autofocus: true,
               onChanged: (value) {
                 tagkey.currentState?.validate();
@@ -73,7 +75,8 @@ class _NewTagDialogState extends State<NewTagDialog> {
             ),
             SizedBox(height: 24),
             NoteButton(
-              child: Text( "Add",
+              child: Text(
+                "Add",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -95,4 +98,3 @@ class _NewTagDialogState extends State<NewTagDialog> {
     );
   }
 }
- 

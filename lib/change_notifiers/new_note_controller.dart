@@ -56,8 +56,10 @@ class NewNoteController extends ChangeNotifier {
   final List<String> _tags = [];
 
   void addTags(String tag) {
-    _tags.add(tag);
-    notifyListeners();
+    if (tag.isNotEmpty) {
+      _tags.add(tag);
+      notifyListeners();
+    }
   }
 
   List<String> get tags => [..._tags];

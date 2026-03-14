@@ -50,270 +50,268 @@ class _RegistrationPageState
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Selector<RegistrationController, bool>(
-              selector: (_, controller) =>
-                  controller.isLoading,
-              builder: (context, isLoading, child) => Stack(
-                children: [
-                  child!,
-                  if (isLoading)
-                    Container(
-                      color: Colors.black26,
-                      child: Center(
-                        child: Container(
-                          padding: EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: white,
-                            borderRadius:
-                                BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 10,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: CircularProgressIndicator(
-                            color: primary,
-                          ),
+        child: Center(
+          child: Selector<RegistrationController, bool>(
+            selector: (_, controller) =>
+                controller.isLoading,
+            builder: (context, isLoading, child) => Stack(
+              children: [
+                child!,
+                if (isLoading)
+                  Container(
+                    color: Colors.black26,
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: white,
+                          borderRadius:
+                              BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: CircularProgressIndicator(
+                          color: primary,
                         ),
                       ),
                     ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: Selector<RegistrationController, bool>(
-                  selector: (_, controller) =>
-                      controller.isRegisterMode,
-                  builder: (_, isRegisterMode, _) => Form(
-                    key: formKey,
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.stretch,
-                      mainAxisAlignment:
-                          MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          isRegisterMode
-                              ? "Register"
-                              : "Sign In",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.fredoka(
-                            fontSize: 48,
-                            color: primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                  ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              padding:  const EdgeInsets.all(16.0),
+              child: Selector<RegistrationController, bool>(
+                selector: (_, controller) =>
+                    controller.isRegisterMode,
+                builder: (_, isRegisterMode, _) => Form(
+                  key: formKey,
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.stretch,
+                    mainAxisAlignment:
+                        MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        isRegisterMode
+                            ? "Register"
+                            : "Sign In",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.fredoka(
+                          fontSize: 48,
+                          color: primary,
+                          fontWeight: FontWeight.w600,
                         ),
-                        SizedBox(height: 16),
-                        Text(
-                          "In order to sync your notes to the cloud, you have to register/sign in to the app",
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 48),
-                        if (isRegisterMode) ...[
-                          NoteFormField(
-                            labelText: "Full name",
-                            fillColor: white,
-                            controller: nameController,
-                            textCapitalization:
-                                TextCapitalization
-                                    .sentences,
-                            filled: true,
-                            textInputAction:
-                                TextInputAction.next,
-                            validator:
-                                Validator.nameValidator,
-                            onChanged: (newValue) {
-                              registrationController
-                                      .fullName =
-                                  newValue;
-                            },
-                          ),
-                          SizedBox(height: 8),
-                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        "In order to sync your notes to the cloud, you have to register/sign in to the app",
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 48),
+                      if (isRegisterMode) ...[
                         NoteFormField(
-                          controller: emailController,
-                          labelText: "Email address",
-                          keyboardType:
-                              TextInputType.emailAddress,
+                          labelText: "Full name",
                           fillColor: white,
+                          controller: nameController,
+                          textCapitalization:
+                              TextCapitalization
+                                  .sentences,
                           filled: true,
                           textInputAction:
                               TextInputAction.next,
                           validator:
-                              Validator.emailValidator,
+                              Validator.nameValidator,
                           onChanged: (newValue) {
-                            registrationController.email =
+                            registrationController
+                                    .fullName =
                                 newValue;
                           },
                         ),
                         SizedBox(height: 8),
-                        Selector<
-                          RegistrationController,
-                          bool
-                        >(
-                          selector: (_, controller) =>
-                              controller.isPasswordHidden,
-                          builder:
-                              (
-                                _,
-                                isPasswordHidden,
-                                _,
-                              ) => NoteFormField(
-                                controller:
-                                    passwordController,
-                                labelText: "Password",
-                                fillColor: white,
-                                filled: true,
-                                obscureText:
-                                    isPasswordHidden,
-                                suffixIcon: NoteIconButton(
-                                  icon: isPasswordHidden
-                                      ? FontAwesomeIcons.eye
-                                      : FontAwesomeIcons
-                                            .eyeSlash,
-                                  onPressed: () {
-                                    registrationController
-                                            .isPasswordHidden =
-                                        !isPasswordHidden;
-                                  },
-                                ),
-                                validator: isRegisterMode
-                                    ? Validator
-                                          .passwordValidator
-                                    : null,
-                                onChanged: (newValue) {
+                      ],
+                      NoteFormField(
+                        controller: emailController,
+                        labelText: "Email address",
+                        keyboardType:
+                            TextInputType.emailAddress,
+                        fillColor: white,
+                        filled: true,
+                        textInputAction:
+                            TextInputAction.next,
+                        validator:
+                            Validator.emailValidator,
+                        onChanged: (newValue) {
+                          registrationController.email =
+                              newValue;
+                        },
+                      ),
+                      SizedBox(height: 8),
+                      Selector<
+                        RegistrationController,
+                        bool
+                      >(
+                        selector: (_, controller) =>
+                            controller.isPasswordHidden,
+                        builder:
+                            (
+                              _,
+                              isPasswordHidden,
+                              _,
+                            ) => NoteFormField(
+                              controller:
+                                  passwordController,
+                              labelText: "Password",
+                              fillColor: white,
+                              filled: true,
+                              obscureText:
+                                  isPasswordHidden,
+                              suffixIcon: NoteIconButton(
+                                icon: isPasswordHidden
+                                    ? FontAwesomeIcons.eye
+                                    : FontAwesomeIcons
+                                          .eyeSlash,
+                                onPressed: () {
                                   registrationController
-                                          .password =
-                                      newValue;
+                                          .isPasswordHidden =
+                                      !isPasswordHidden;
                                 },
                               ),
-                        ),
-                        SizedBox(height: 12),
-                        if (!isRegisterMode) ...[
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      RecoverPasswordPage(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              "Forget password",
-                              style: TextStyle(
-                                color: primary,
-                                fontWeight: FontWeight.bold,
+                              validator: isRegisterMode
+                                  ? Validator
+                                        .passwordValidator
+                                  : null,
+                              onChanged: (newValue) {
+                                registrationController
+                                        .password =
+                                    newValue;
+                              },
+                            ),
+                      ),
+                      SizedBox(height: 12),
+                      if (!isRegisterMode) ...[
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    RecoverPasswordPage(),
                               ),
+                            );
+                          },
+                          child: Text(
+                            "Forget password",
+                            style: TextStyle(
+                              color: primary,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 24),
-                        ],
-                        SizedBox(
-                          height: 48,
-                          child: NoteButton(
-                            onPressed: () {
-                              if (formKey.currentState
-                                      ?.validate() ??
-                                  false) {
-                                registrationController
-                                    .authenticateWithEmailAndPassword(
-                                      context,
-                                    );
-                              }
-                            },
+                        ),
+                        SizedBox(height: 24),
+                      ],
+                      SizedBox(
+                        height: 48,
+                        child: NoteButton(
+                          onPressed: () {
+                            if (formKey.currentState
+                                    ?.validate() ??
+                                false) {
+                              registrationController
+                                  .authenticateWithEmailAndPassword(
+                                    context,
+                                  );
+                            }
+                          },
+                          child: Text(
+                            isRegisterMode
+                                ? "create my account"
+                                : "Log me in",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
                             child: Text(
                               isRegisterMode
-                                  ? "create my account"
-                                  : "Log me in",
+                                  ? "Or register with"
+                                  : "Or sign in with",
+                            ),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: NoteIconButtonOutlined(
+                              icon:
+                                  FontAwesomeIcons.google,
+                              onPressed: () async {
+                                registrationController
+                                    .authenticateWithGoogle(
+                                      context: context,
+                                    );
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 32),
+            
+                          Expanded(
+                            child: NoteIconButtonOutlined(
+                              icon:
+                                  FontAwesomeIcons.person,
+                              onPressed: () {},
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 32),
+                      Text.rich(
+                        textAlign: TextAlign.center,
+                        TextSpan(
+                          style: TextStyle(
+                            color: grey700,
+                          ),
+                          text: isRegisterMode
+                              ? "Already have an account?  "
+                              : "Don't have an account?",
+                          children: [
+                            TextSpan(
+                              text: isRegisterMode
+                                  ? "Sign in"
+                                  : "Register",
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                color: primary,
+                                fontWeight:
+                                    FontWeight.bold,
                               ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 32),
-                        Row(
-                          children: [
-                            Expanded(child: Divider()),
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                isRegisterMode
-                                    ? "Or register with"
-                                    : "Or sign in with",
-                              ),
-                            ),
-                            Expanded(child: Divider()),
-                          ],
-                        ),
-                        SizedBox(height: 32),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: NoteIconButtonOutlined(
-                                icon:
-                                    FontAwesomeIcons.google,
-                                onPressed: () async {
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
                                   registrationController
-                                      .authenticateWithGoogle(
-                                        context: context,
-                                      );
+                                          .isRegisterMode =
+                                      !isRegisterMode;
                                 },
-                              ),
-                            ),
-                            SizedBox(width: 32),
-
-                            Expanded(
-                              child: NoteIconButtonOutlined(
-                                icon:
-                                    FontAwesomeIcons.person,
-                                onPressed: () {},
-                              ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 32),
-                        Text.rich(
-                          textAlign: TextAlign.center,
-                          TextSpan(
-                            style: TextStyle(
-                              color: grey700,
-                            ),
-                            text: isRegisterMode
-                                ? "Already have an account?  "
-                                : "Don't have an account?",
-                            children: [
-                              TextSpan(
-                                text: isRegisterMode
-                                    ? "Sign in"
-                                    : "Register",
-                                style: TextStyle(
-                                  color: primary,
-                                  fontWeight:
-                                      FontWeight.bold,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    registrationController
-                                            .isRegisterMode =
-                                        !isRegisterMode;
-                                  },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),

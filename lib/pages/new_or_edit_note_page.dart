@@ -35,11 +35,7 @@ class _NewOrEditNotePageState
     WidgetsBinding.instance.addObserver(this);
     scrollController = ScrollController();
     newNoteController = context.read<NewNoteController>();
-    quillController = QuillController.basic()
-      ..addListener(() {
-        newNoteController.content =
-            quillController.document;
-      });
+    quillController = QuillController.basic();
 
     titleFocusNode = FocusNode();
     contentFocusNode = FocusNode();
@@ -49,7 +45,7 @@ class _NewOrEditNotePageState
     WidgetsBinding.instance.addPostFrameCallback((
       timeStamp,
     ) {
-        newNoteController.readOnly = true;
+      newNoteController.readOnly = true;
       if (widget.isNewNote) {
         newNoteController.readOnly = false;
         titleFocusNode.requestFocus();
@@ -88,6 +84,7 @@ class _NewOrEditNotePageState
   }
 
   void _saveNote() {
+    newNoteController.content = quillController.document;
     if (newNoteController.canSaveNote) {
       newNoteController.saveNote(context);
     }
@@ -129,6 +126,8 @@ class _NewOrEditNotePageState
                       icon: FontAwesomeIcons.check,
                       onPressed: canSaveNote
                           ? () {
+                              newNoteController.content =
+                                  quillController.document;
                               newNoteController.saveNote(
                                 context,
                               );
@@ -160,24 +159,39 @@ class _NewOrEditNotePageState
                               TextFormField(
                                 focusNode: titleFocusNode,
                                 controller: titleController,
-                                textCapitalization: TextCapitalization.words,
-                                textInputAction: TextInputAction.next,
+                                maxLines: 2,
+
+                                textCapitalization:
+                                    TextCapitalization
+                                        .words,
+                                textInputAction:
+                                    TextInputAction.next,
                                 style: const TextStyle(
                                   fontSize: 24,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight:
+                                      FontWeight.bold,
                                 ),
                                 onChanged: (newValue) {
-                                  newNoteController.title = newValue;
+                                  newNoteController.title =
+                                      newValue;
                                 },
                                 decoration: InputDecoration(
                                   hintText: "Title here",
                                   border: InputBorder.none,
-                                  hintStyle: TextStyle(color: grey300),
+                                  hintStyle: TextStyle(
+                                    color: grey300,
+                                  ),
                                 ),
                               ),
-                              NoteMetadata(note: newNoteController.note),
+                              NoteMetadata(
+                                note:
+                                    newNoteController.note,
+                              ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding:
+                                    const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
                                 child: Divider(
                                   color: grey500,
                                   thickness: 2,
@@ -209,17 +223,23 @@ class _NewOrEditNotePageState
                   ),
                 ),
 
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-                        left: 16,
-                        right: 16,
-                      ),
-                      child: NoteToolbar(controller: quillController),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom:
+                          MediaQuery.of(
+                            context,
+                          ).viewInsets.bottom +
+                          16,
+                      left: 16,
+                      right: 16,
+                    ),
+                    child: NoteToolbar(
+                      controller: quillController,
                     ),
                   ),
+                ),
               ],
             );
           },
