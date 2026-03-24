@@ -122,21 +122,20 @@ This project uses Firebase for authentication and sync. For security, API keys a
 4. **Finalize**: Run `flutter pub get` and `flutter run`.
 **TODO**
 
-Clean hive storage after logout 
-Log user in immediately after sign up 
-Whole pages scrolls
-Reduce toolbar white space 
-Increase the line spacing 
+<!-- Clean hive storage after logout  -->
+<!-- Log user in immediately after sign up  -->
+<!-- Whole pages scrolls -->
+<!-- Reduce toolbar white space  -->
+<!-- Increase the line spacing  -->
 <!-- Remove save button and add save on exit -->
 <!-- Add tag not working  -->
 <!-- Optimize typing experience  -->
 <!-- Change font to a more typing friendly fonts -->
-Reduce fonts size and adjust text align
+<!-- Reduce fonts size and adjust text align -->
 <!-- Adjust text editing focus to match page focus -->
-Ability to move cursor around page
+<!-- Ability to move cursor around page -->
 <!-- Show more of the contents in the main page -->
 <!-- Remove Facebook auth  -->
 add guest mode 
-fix poping on back button
+<!-- fix poping on back button -->
 
-where is the best place to log user in immediately after signup , in my registration controller or my auth services and where is 

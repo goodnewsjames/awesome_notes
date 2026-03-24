@@ -4,9 +4,9 @@ import 'package:awesome_notes/pages/registration_page.dart';
 import 'package:awesome_notes/services/services.dart';
 import 'package:awesome_notes/change_notifiers/change_notifiers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:provider/provider.dart';
 
 class AwesomeNoteApp extends StatelessWidget {
@@ -88,8 +88,9 @@ class AwesomeNoteApp extends StatelessWidget {
               ),
         ),
         localizationsDelegates: [
-          FlutterQuillLocalizations.delegate,
+         FleatherLocalizations.delegate,
         ],
+        supportedLocales: FleatherLocalizations.supportedLocales,
         home:
             home ??
             StreamBuilder<User?>(

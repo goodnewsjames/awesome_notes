@@ -3,8 +3,8 @@ import 'dart:async' show Timer;
 import 'package:awesome_notes/change_notifiers/new_note_controller.dart';
 import 'package:awesome_notes/core/core.dart';
 import 'package:awesome_notes/widgets/widgets.dart';
+import 'package:fleather/fleather.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -26,11 +26,14 @@ class _NewOrEditNotePageState
     with WidgetsBindingObserver {
   late final NewNoteController newNoteController;
   late final TextEditingController titleController;
-  late final QuillController quillController;
+  late final FleatherController fleatherController;
   late final FocusNode titleFocusNode;
   late final FocusNode contentFocusNode;
   late final ScrollController scrollController;
+  final GlobalKey<EditorState> _editorKey =
+      GlobalKey<EditorState>();
   Timer? _autoSaveTimer;
+  bool isKeyBoardVisible = true;
 
   @override
   void initState() {
@@ -38,8 +41,10 @@ class _NewOrEditNotePageState
     WidgetsBinding.instance.addObserver(this);
     scrollController = ScrollController();
     newNoteController = context.read<NewNoteController>();
-    quillController = QuillController.basic();
-    quillController.addListener(_startAutoSaveTimer);
+    fleatherController = FleatherController(
+      document: newNoteController.content,
+    );
+    fleatherController.addListener(_startAutoSaveTimer);
     titleFocusNode = FocusNode();
     contentFocusNode = FocusNode();
     titleController = TextEditingController(
@@ -53,14 +58,20 @@ class _NewOrEditNotePageState
         newNoteController.readOnly = false;
         titleFocusNode.requestFocus();
       } else {
-        quillController.document =
-            newNoteController.content;
-
-        final length = quillController.document.length;
-        quillController.updateSelection(
-          TextSelection.collapsed(offset: length - 1),
-          ChangeSource.local,
-        );
+        final length = fleatherController.document.length;
+        if (length > 1) {
+          fleatherController.updateSelection(
+            TextSelection.collapsed(offset: length - 1),
+            source: ChangeSource.local,
+          );
+        }
+        if (scrollController.hasClients) {
+          scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
         contentFocusNode.requestFocus();
       }
     });
@@ -78,12 +89,13 @@ class _NewOrEditNotePageState
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _autoSaveTimer?.cancel();
     scrollController.dispose();
-    quillController.dispose();
+    fleatherController.removeListener(_startAutoSaveTimer);
+    fleatherController.dispose();
     titleController.dispose();
     titleFocusNode.dispose();
     contentFocusNode.dispose();
-    _autoSaveTimer?.cancel();
     super.dispose();
   }
 
@@ -97,21 +109,30 @@ class _NewOrEditNotePageState
   }
 
   void _saveNote() {
-    newNoteController.content = quillController.document;
+    newNoteController.content = fleatherController.document;
     if (newNoteController.canSaveNote) {
-      newNoteController.saveNote(context);
+      try {
+        newNoteController.saveNote(context);
+      } catch (e) {
+        debugPrint("Save failed during disposal: $e");
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        _autoSaveTimer?.cancel();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _saveNote();
-        });
+      canPop: false,
+      onPopInvokedWithResult: (didpop, result) async {
+        if (didpop) return;
+        if (!newNoteController.readOnly) {
+          newNoteController.readOnly = true;
+          contentFocusNode.unfocus();
+          return;
+        }
+        _saveNote();
+        if (!context.mounted) return;
+        Navigator.pop(context);
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -119,41 +140,46 @@ class _NewOrEditNotePageState
           title: Text(
             widget.isNewNote ? "New Note" : "Edit Note",
           ),
-          leading: NoteBackButton(),
-          actions: [
-            Selector<NewNoteController, bool>(
-              selector: (context, newNoteController) =>
-                  newNoteController.readOnly,
-              builder: (context, readOnly, child) =>
-                  NoteIconButtonOutlined(
-                    icon: newNoteController.readOnly
-                        ? FontAwesomeIcons.pen
-                        : FontAwesomeIcons.bookOpen,
-                    onPressed: () {},
-                  ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Selector<NewNoteController, bool>(
-                selector: (_, newNoteController) =>
-                    newNoteController.canSaveNote,
-                builder: (_, canSaveNote, _) =>
-                    NoteIconButtonOutlined(
-                      icon: FontAwesomeIcons.check,
-                      onPressed: canSaveNote
-                          ? () {
-                              newNoteController.content =
-                                  quillController.document;
-                              newNoteController.saveNote(
-                                context,
-                              );
-                              Navigator.pop(context);
-                            }
-                          : null,
-                    ),
-              ),
-            ),
-          ],
+          
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: NoteBackButton(),
+          ),
+          // actions: [
+          //   Selector<NewNoteController, bool>(
+          //     selector: (context, newNoteController) =>
+          //         newNoteController.readOnly,
+          //     builder: (context, readOnly, child) =>
+          //         NoteIconButtonOutlined(
+          //           icon: newNoteController.readOnly
+          //               ? FontAwesomeIcons.pen
+          //               : FontAwesomeIcons.bookOpen,
+          //           onPressed: () {},
+          //         ),
+          //   ),
+          //   Padding(
+          //     padding: const EdgeInsets.all(8.0),
+          //     child: Selector<NewNoteController, bool>(
+          //       selector: (_, newNoteController) =>
+          //           newNoteController.canSaveNote,
+          //       builder: (_, canSaveNote, _) =>
+          //           NoteIconButtonOutlined(
+          //             icon: FontAwesomeIcons.check,
+          //             onPressed: canSaveNote
+          //                 ? () {
+          //                     newNoteController.content =
+          //                         fleatherController
+          //                             .document;
+          //                     newNoteController.saveNote(
+          //                       context,
+          //                     );
+          //                     Navigator.pop(context);
+          //                   }
+          //                 : null,
+          //           ),
+          //     ),
+          //   ),
+          // ],
         ),
         body: Selector<NewNoteController, bool>(
           selector: (context, newNoteController) =>
@@ -219,45 +245,41 @@ class _NewOrEditNotePageState
                         ),
                         SliverFillRemaining(
                           hasScrollBody: false,
-                          child: QuillEditor.basic(
+                          child: FleatherEditor(
                             focusNode: contentFocusNode,
-                            controller: quillController,
-                            config: QuillEditorConfig(
-                              placeholder: "Note here...",
-                              expands: true,
-                              showCursor: true,
-                              scrollable: true,
-                              enableSelectionToolbar: true,
-                              enableInteractiveSelection:
-                                  true,
-                            ),
+                            controller: fleatherController,
+                            editorKey: _editorKey,
+                            // readOnly: readOnly,
                           ),
                         ),
                         const SliverToBoxAdapter(
-                          child: SizedBox(height: 80),
+                          child: SizedBox(height: 60),
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom:
-                          MediaQuery.of(
-                            context,
-                          ).viewInsets.bottom +
-                          16,
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: NoteToolbar(
-                      controller: quillController,
+                if (MediaQuery.of(
+                      context,
+                    ).viewInsets.bottom >
+                    0)
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom:
+                            MediaQuery.of(
+                              context,
+                            ).viewInsets.bottom,
+                        left: 16,
+                        right: 16,
+                      ),
+                      child: NoteToolbar(
+                        controller: fleatherController,
+                        editorKey: _editorKey,
+                      ),
                     ),
                   ),
-                ),
               ],
             );
           },

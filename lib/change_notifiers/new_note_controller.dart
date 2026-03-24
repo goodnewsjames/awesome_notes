@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:awesome_notes/change_notifiers/notes_provider.dart';
 import 'package:awesome_notes/models/note.dart';
+import 'package:fleather/fleather.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:provider/provider.dart';
 import 'package:awesome_notes/core/utils/id_generator.dart';
 
@@ -13,7 +13,7 @@ class NewNoteController extends ChangeNotifier {
   set note(Note? value) {
     _note = value;
     _title = _note!.title ?? "";
-    _content = Document.fromJson(
+    _content =  ParchmentDocument.fromJson(
       jsonDecode(_note!.contentJson),
     );
     _tags.addAll(_note!.tags ?? []);
@@ -44,14 +44,14 @@ class NewNoteController extends ChangeNotifier {
 
   String get title => _title.trim();
 
-  Document _content = Document();
+  ParchmentDocument _content =  ParchmentDocument();
 
-  set content(Document value) {
+  set content(ParchmentDocument value) {
     _content = value;
     notifyListeners();
   }
 
-  Document get content => _content;
+   ParchmentDocument get content => _content;
 
   List<String> _tags = [];
 
@@ -96,6 +96,7 @@ class NewNoteController extends ChangeNotifier {
           !listEquals(tags, note!.tags);
     }
 
+    print('[DEBUG] canSaveNote: $canSave');
     return canSave;
 
     // if (isNewNote) {
@@ -112,6 +113,7 @@ class NewNoteController extends ChangeNotifier {
   }
 
   void saveNote(BuildContext context) {
+    print('[DEBUG] saveNote called');
     final String? newTitle = title.isNotEmpty
         ? title
         : null;
@@ -140,12 +142,13 @@ class NewNoteController extends ChangeNotifier {
 
     _note = note;
     _title = note.title ?? '';
-    _content = Document.fromJson(
+    _content =  ParchmentDocument.fromJson(
       jsonDecode(note.contentJson),
     );
     _tags = [...note.tags ?? []];
     notifyListeners();
 
+    print('[DEBUG] saveNote: updating provider');
     final notesProvider = context.read<NotesProvider>();
     isNewNote
         ? notesProvider.addNote(note)

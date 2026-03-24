@@ -74,6 +74,13 @@ class RegistrationController extends ChangeNotifier {
           email: email,
           password: password,
         );
+
+        // Auto-login immediately after signup
+        await AuthService.login(
+          email: email,
+          password: password,
+        );
+
         if (!context.mounted) return;
         isLoading = false;
         await showMessageDialog(
